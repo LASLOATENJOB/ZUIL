@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENJOB Kiosk – Walk-in Registratie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #f58220;
+    --orange-light: #ff9a42;
+    --orange-dark: #d96f10;
+    --orange-glow: rgba(245, 130, 32, 0.15);
+    --white: #ffffff;
+    --bg: #faf7f4;
+    --text: #1a1a1a;
+    --text-light: #666;
+    --gray-100: #f5f2ef;
+    --gray-200: #e8e4e0;
+    --gray-300: #d4d0cc;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.06);
+    --shadow-lg: 0 12px 48px rgba(0,0,0,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
+  }
+
+  h1, h2, h3, .section-title { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+  /* ===== VIDEO SCREEN ===== */
+  #video-screen {
+    position: fixed; inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--orange);
+    cursor: pointer;
+    transition: opacity 0.5s ease;
+  }
+  #video-screen.hidden { opacity: 0; pointer-events: none; }
+
+  #video-screen video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+
+  /* Placeholder when no video */
+  .video-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%; height: 100%;
+    background: linear-gradient(160deg, #f58220 0%, #e06b0a 50%, #f58220 100%);
+    background-size: 300% 300%;
+    animation: gradientShift 8s ease infinite;
+    position: relative;
+    overflow: hidden;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .video-placeholder::before {
+    content: '';
+    position: absolute;
+    top: -20%; right: -10%;
+    width: 500px; height: 500px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+  }
+  .video-placeholder::after {
+    content: '';
+    position: absolute;
+    bottom: -15%; left: -5%;
+    width: 400px; height: 400px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+  }
+
+  .placeholder-logo {
+    width: 280px;
+    margin-bottom: 48px;
+    position: relative; z-index: 1;
+  }
+
+  .logo-topbar {
+    height: 44px;
+    object-fit: contain;
+  }
+
+  .placeholder-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 64px;
+    font-weight: 800;
+    color: white;
+    text-align: center;
+    position: relative; z-index: 1;
+    line-height: 1.15;
+    margin-bottom: 24px;
+  }
+
+  .placeholder-sub {
+    font-size: 28px;
+    color: rgba(255,255,255,0.85);
+    position: relative; z-index: 1;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  .touch-icon {
+    width: 64px; height: 64px;
+    margin-top: 48px;
+    position: relative; z-index: 1;
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  /* ===== FORM SCREEN ===== */
+  #form-screen {
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.5s ease 0.3s;
+    overflow: hidden;
+  }
+  #form-screen.visible { opacity: 1; }
+
+  /* Top bar */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 40px;
+    background: white;
+    border-bottom: 1px solid var(--gray-200);
+    flex-shrink: 0;
+  }
+
+  .top-bar img { height: 44px; }
+
+  .lang-selector {
+    display: flex;
+    gap: 6px;
+  }
+  .lang-btn {
+    padding: 10px 16px;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    background: white;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .lang-btn:hover { border-color: var(--orange-light); color: var(--orange); }
+  .lang-btn.active {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: white;
+  }
+
+  /* Form container */
+  .form-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 32px 40px 40px;
+  }
+
+  .form-wrapper::-webkit-scrollbar { width: 6px; }
+  .form-wrapper::-webkit-scrollbar-track { background: transparent; }
+  .form-wrapper::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+
+  .form-header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .form-header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .form-header p {
+    font-size: 18px;
+    color: var(--text-light);
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 36px;
+  }
+  .progress-step {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--gray-200);
+    transition: background 0.4s ease;
+  }
+  .progress-step.active { background: var(--orange); }
+  .progress-step.done { background: var(--orange-dark); }
+
+  /* Form steps */
+  .form-step {
+    display: none;
+    animation: fadeIn 0.35s ease;
+  }
+  .form-step.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title .icon {
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--orange-glow);
+    border-radius: 10px;
+    font-size: 20px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .form-grid .full-width { grid-column: 1 / -1; }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+  }
+  .field-group label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .field-group label .req { color: var(--orange); }
+
+  .field-group input, .field-group select {
+    padding: 16px 18px;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    font-size: 18px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .field-group input:focus, .field-group select:focus {
+    outline: none;
+    border-color: var(--orange);
+    box-shadow: 0 0 0 4px var(--orange-glow);
+  }
+  .field-group input::placeholder { color: var(--gray-300); }
+  .field-group input.error, .field-group select.error {
+    border-color: #e53e3e;
+    box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.1);
+  }
+  .error-text {
+    font-size: 13px;
+    color: #e53e3e;
+    margin-top: 4px;
+    display: none;
+  }
+  .error-text.show { display: block; }
+
+  /* Custom select arrow */
+  .select-wrap {
+    position: relative;
+  }
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 16px; bottom: 16px;
+    font-size: 18px;
+    color: var(--text-light);
+    pointer-events: none;
+  }
+
+  /* Multi-choice cards */
+  .choice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .choice-grid.three-col { grid-template-columns: 1fr 1fr 1fr; }
+
+  .choice-card {
+    padding: 18px 20px;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius);
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--text);
+    position: relative;
+  }
+  .choice-card:hover { border-color: var(--orange-light); }
+  .choice-card.selected {
+    border-color: var(--orange);
+    background: var(--orange-glow);
+    color: var(--orange-dark);
+    font-weight: 600;
+  }
+  .choice-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 8px; right: 12px;
+    font-size: 14px;
+    color: var(--orange);
+    font-weight: 700;
+  }
+
+  /* Toggle pills */
+  .toggle-group {
+    display: flex;
+    gap: 0;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: white;
+  }
+  .toggle-option {
+    flex: 1;
+    padding: 18px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-light);
+    transition: all 0.2s;
+    border-right: 1px solid var(--gray-200);
+  }
+  .toggle-option:last-child { border-right: none; }
+  .toggle-option:hover { background: var(--gray-100); }
+  .toggle-option.selected {
+    background: var(--orange);
+    color: white;
+  }
+
+  /* Navigation buttons */
+  .nav-buttons {
+    display: flex;
+    gap: 16px;
+    margin-top: 36px;
+    padding-bottom: 20px;
+  }
+  .btn {
+    flex: 1;
+    padding: 20px;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-back {
+    background: var(--gray-100);
+    color: var(--text-light);
+    flex: 0.4;
+  }
+  .btn-back:hover { background: var(--gray-200); }
+  .btn-next {
+    background: var(--orange);
+    color: white;
+  }
+  .btn-next:hover { background: var(--orange-dark); }
+  .btn-next:active { transform: scale(0.98); }
+  .btn-submit {
+    background: var(--orange);
+    color: white;
+    font-size: 22px;
+    padding: 22px;
+  }
+  .btn-submit:hover { background: var(--orange-dark); }
+
+  /* Success screen */
+  #success-screen {
+    position: fixed; inset: 0;
+    z-index: 200;
+    background: white;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  #success-screen.visible { display: flex; opacity: 1; }
+
+  .success-check {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: var(--orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 32px;
+    animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes scaleIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+  }
+  .success-check svg { width: 56px; height: 56px; }
+
+  .success-title {
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .success-sub {
+    font-size: 22px;
+    color: var(--text-light);
+    text-align: center;
+    max-width: 500px;
+  }
+
+  .countdown-ring {
+    margin-top: 40px;
+    width: 60px; height: 60px;
+    position: relative;
+  }
+  .countdown-ring svg { transform: rotate(-90deg); }
+  .countdown-ring circle {
+    fill: none;
+    stroke-width: 4;
+  }
+  .countdown-ring .bg { stroke: var(--gray-200); }
+  .countdown-ring .fg {
+    stroke: var(--orange);
+    stroke-dasharray: 170;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 5s linear;
+    stroke-linecap: round;
+  }
+  .countdown-ring .fg.animate { stroke-dashoffset: 170; }
+  .countdown-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--orange);
+  }
+
+  /* Date field group */
+  .date-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.3fr;
+    gap: 10px;
+  }
+  .date-fields input {
+    text-align: center;
+  }
+
+  /* Privacy note */
+  .privacy-note {
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: var(--gray-100);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--text-light);
+    line-height: 1.5;
+  }
+
+  /* Keyboard-visible adjustments */
+  @media (max-height: 700px) {
+    .form-wrapper { padding: 20px 32px; }
+    .form-header h1 { font-size: 28px; }
+    .form-header { margin-bottom: 20px; }
+    .section-title { font-size: 18px; margin-bottom: 16px; }
+    .field-group input, .field-group select { padding: 12px 14px; font-size: 16px; }
+    .choice-card { padding: 14px 16px; font-size: 15px; }
+    .btn { padding: 16px; font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== VIDEO / ATTRACT SCREEN ===== -->
+<div id="video-screen" onclick="startForm()">
+  <!-- Replace the placeholder below with: <video src="your-video.mp4" autoplay muted loop playsinline></video> -->
+  <div class="video-placeholder">
+    <img class="placeholder-logo" src="https://cdn.prod.website-files.com/68d0f53fcf3e1c5acdd64bfc/68d1001e3918dca553085563_Logo_ENJOB_wit_PNG.png" alt="ENJOB">
+    <div class="placeholder-title" data-i18n="attract_title">Op zoek naar<br>werk?</div>
+    <div class="placeholder-sub" data-i18n="attract_sub">Raak het scherm aan om je te registreren</div>
+    <svg class="touch-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M32 12v6M32 46v6M12 32h6M46 32h6M19.5 19.5l4.2 4.2M40.3 40.3l4.2 4.2M44.5 19.5l-4.2 4.2M23.7 40.3l-4.2 4.2" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="32" cy="32" r="10" stroke="white" stroke-width="2.5"/>
+      <circle cx="32" cy="32" r="3" fill="white"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ===== FORM SCREEN ===== -->
+<div id="form-screen">
+  <div class="top-bar">
+    <img class="logo-topbar" src="https://cdn.prod.website-files.com/68d0f53fcf3e1c5acdd64bfc/68d1454d2a6a5c89656ad21c_Logo_ENJOB_coliur_PNG.png" alt="ENJOB">
+    <div class="lang-selector" id="langSelector"></div>
+  </div>
+
+  <div class="form-wrapper" id="formWrapper">
+    <div class="form-header">
+      <h1 data-i18n="form_title">Registratie</h1>
+      <p data-i18n="form_sub">Vul je gegevens in en wij nemen contact met je op</p>
+    </div>
+
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-step active"></div>
+      <div class="progress-step"></div>
+      <div class="progress-step"></div>
+    </div>
+
+    <!-- STEP 1: Personal info -->
+    <div class="form-step active" id="step1">
+      <div class="section-title"><span class="icon">👤</span> <span data-i18n="section_personal">Persoonlijke gegevens</span></div>
+      <div class="form-grid">
+        <div class="field-group">
+          <label data-i18n="label_firstname">Voornaam <span class="req">*</span></label>
+          <input type="text" id="firstName" data-i18n-placeholder="ph_firstname" placeholder="Jan" autocomplete="off">
+          <span class="error-text" data-i18n="err_required">Dit veld is verplicht</span>
+        </div>
+        <div class="field-group">
+          <label data-i18n="label_lastname">Achternaam <span class="req">*</span></label>
+          <input type="text" id="lastName" data-i18n-placeholder="ph_lastname" placeholder="Jansen" autocomplete="off">
+          <span class="error-text" data-i18n="err_required">Dit veld is verplicht</span>
+        </div>
+        <div class="field-group full-width">
+          <label data-i18n="label_dob">Geboortedatum <span class="req">*</span></label>
+          <div class="date-fields">
+            <input type="text" id="dobDay" placeholder="DD" maxlength="2" inputmode="numeric" autocomplete="off">
+            <input type="text" id="dobMonth" placeholder="MM" maxlength="2" inputmode="numeric" autocomplete="off">
+            <input type="text" id="dobYear" data-i18n-placeholder="ph_year" placeholder="JJJJ" maxlength="4" inputmode="numeric" autocomplete="off">
+          </div>
+          <span class="error-text" data-i18n="err_dob">Vul een geldige geboortedatum in</span>
+        </div>
+        <div class="field-group">
+          <label data-i18n="label_city">Woonplaats <span class="req">*</span></label>
+          <input type="text" id="city" data-i18n-placeholder="ph_city" placeholder="Venlo" autocomplete="off">
+          <span class="error-text" data-i18n="err_required">Dit veld is verplicht</span>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn btn-next" onclick="nextStep()"><span data-i18n="btn_next">Volgende</span> →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Contact info -->
+    <div class="form-step" id="step2">
+      <div class="section-title"><span class="icon">📱</span> <span data-i18n="section_contact">Contactgegevens</span></div>
+      <div class="form-grid">
+        <div class="field-group full-width">
+          <label data-i18n="label_phone">Telefoonnummer <span class="req">*</span></label>
+          <input type="tel" id="phone" placeholder="+31 6 12345678" inputmode="tel" autocomplete="off">
+          <span class="error-text" data-i18n="err_phone">Vul een geldig telefoonnummer in</span>
+        </div>
+        <div class="field-group full-width">
+          <label data-i18n="label_email">E-mailadres</label>
+          <input type="email" id="email" placeholder="jan@voorbeeld.nl" inputmode="email" autocomplete="off">
+          <span class="error-text" data-i18n="err_email">Vul een geldig e-mailadres in</span>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn btn-back" onclick="prevStep()">← <span data-i18n="btn_back">Terug</span></button>
+        <button class="btn btn-next" onclick="nextStep()"><span data-i18n="btn_next">Volgende</span> →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Preferences -->
+    <div class="form-step" id="step3">
+      <div class="section-title"><span class="icon">💼</span> <span data-i18n="section_prefs">Voorkeuren</span></div>
+
+      <label style="font-size:15px;font-weight:600;margin-bottom:10px;display:block" data-i18n="label_sector">In welke sector wil je werken? <span class="req">*</span></label>
+      <div class="choice-grid" id="sectorGrid"></div>
+      <span class="error-text" id="sectorError" data-i18n="err_sector" style="margin-bottom:20px">Kies minstens één sector</span>
+
+      <label style="font-size:15px;font-weight:600;margin:24px 0 10px;display:block" data-i18n="label_available">Wanneer ben je beschikbaar? <span class="req">*</span></label>
+      <div class="choice-grid three-col" id="availGrid"></div>
+      <span class="error-text" id="availError" data-i18n="err_available" style="margin-bottom:20px">Maak een keuze</span>
+
+      <label style="font-size:15px;font-weight:600;margin:24px 0 10px;display:block" data-i18n="label_hours">Fulltime of parttime? <span class="req">*</span></label>
+      <div class="toggle-group" id="hoursToggle">
+        <div class="toggle-option" data-value="fulltime" onclick="selectToggle(this)">Fulltime</div>
+        <div class="toggle-option" data-value="parttime" onclick="selectToggle(this)">Parttime</div>
+        <div class="toggle-option" data-value="both" onclick="selectToggle(this)" data-i18n="opt_both">Geen voorkeur</div>
+      </div>
+      <span class="error-text" id="hoursError" data-i18n="err_hours" style="margin-top:4px">Maak een keuze</span>
+
+      <div class="privacy-note" data-i18n="privacy">
+        Door je te registreren ga je akkoord met de verwerking van je gegevens door ENJOB Personeelsdiensten. We nemen zo snel mogelijk contact met je op.
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn btn-back" onclick="prevStep()">← <span data-i18n="btn_back">Terug</span></button>
+        <button class="btn btn-submit" onclick="submitForm()">✓ <span data-i18n="btn_submit">Verstuur</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SUCCESS SCREEN ===== -->
+<div id="success-screen">
+  <div class="success-check">
+    <svg viewBox="0 0 56 56" fill="none"><path d="M14 28l10 10 18-20" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <div class="success-title" data-i18n="success_title">Bedankt!</div>
+  <div class="success-sub" data-i18n="success_sub">We nemen zo snel mogelijk contact met je op.</div>
+  <div class="countdown-ring">
+    <svg width="60" height="60" viewBox="0 0 60 60">
+      <circle class="bg" cx="30" cy="30" r="27"/>
+      <circle class="fg" id="countdownCircle" cx="30" cy="30" r="27"/>
+    </svg>
+    <div class="countdown-num" id="countdownNum">5</div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// TRANSLATIONS
+// ============================================================
+const T = {
+  nl: {
+    attract_title: 'Op zoek naar<br>werk?',
+    attract_sub: 'Raak het scherm aan om je te registreren',
+    form_title: 'Registratie',
+    form_sub: 'Vul je gegevens in en wij nemen contact met je op',
+    section_personal: 'Persoonlijke gegevens',
+    section_contact: 'Contactgegevens',
+    section_prefs: 'Voorkeuren',
+    label_firstname: 'Voornaam <span class="req">*</span>',
+    label_lastname: 'Achternaam <span class="req">*</span>',
+    label_dob: 'Geboortedatum <span class="req">*</span>',
+    label_city: 'Woonplaats <span class="req">*</span>',
+    label_phone: 'Telefoonnummer <span class="req">*</span>',
+    label_email: 'E-mailadres',
+    label_sector: 'In welke sector wil je werken? <span class="req">*</span>',
+    label_available: 'Wanneer ben je beschikbaar? <span class="req">*</span>',
+    label_hours: 'Fulltime of parttime? <span class="req">*</span>',
+    ph_firstname: 'Jan',
+    ph_lastname: 'Jansen',
+    ph_year: 'JJJJ',
+    ph_city: 'Venlo',
+    btn_next: 'Volgende',
+    btn_back: 'Terug',
+    btn_submit: 'Verstuur',
+    opt_both: 'Geen voorkeur',
+    err_required: 'Dit veld is verplicht',
+    err_dob: 'Vul een geldige geboortedatum in',
+    err_phone: 'Vul een geldig telefoonnummer in',
+    err_email: 'Vul een geldig e-mailadres in',
+    err_sector: 'Kies minstens één sector',
+    err_available: 'Maak een keuze',
+    err_hours: 'Maak een keuze',
+    privacy: 'Door je te registreren ga je akkoord met de verwerking van je gegevens door ENJOB Personeelsdiensten. We nemen zo snel mogelijk contact met je op.',
+    success_title: 'Bedankt!',
+    success_sub: 'We nemen zo snel mogelijk contact met je op.',
+    sectors: ['Logistiek', 'Productie', 'Techniek', 'Food', 'Administratie', 'Schoonmaak'],
+    avail: ['Direct', 'Binnen 1 maand', '> 2 maanden']
+  },
+  en: {
+    attract_title: 'Looking for<br>a job?',
+    attract_sub: 'Touch the screen to register',
+    form_title: 'Registration',
+    form_sub: 'Fill in your details and we will contact you',
+    section_personal: 'Personal details',
+    section_contact: 'Contact details',
+    section_prefs: 'Preferences',
+    label_firstname: 'First name <span class="req">*</span>',
+    label_lastname: 'Last name <span class="req">*</span>',
+    label_dob: 'Date of birth <span class="req">*</span>',
+    label_city: 'City <span class="req">*</span>',
+    label_phone: 'Phone number <span class="req">*</span>',
+    label_email: 'Email address',
+    label_sector: 'What sector do you want to work in? <span class="req">*</span>',
+    label_available: 'When are you available? <span class="req">*</span>',
+    label_hours: 'Fulltime or parttime? <span class="req">*</span>',
+    ph_firstname: 'John',
+    ph_lastname: 'Smith',
+    ph_year: 'YYYY',
+    ph_city: 'Venlo',
+    btn_next: 'Next',
+    btn_back: 'Back',
+    btn_submit: 'Submit',
+    opt_both: 'No preference',
+    err_required: 'This field is required',
+    err_dob: 'Enter a valid date of birth',
+    err_phone: 'Enter a valid phone number',
+    err_email: 'Enter a valid email address',
+    err_sector: 'Select at least one sector',
+    err_available: 'Make a choice',
+    err_hours: 'Make a choice',
+    privacy: 'By registering you agree to the processing of your data by ENJOB Personeelsdiensten. We will contact you as soon as possible.',
+    success_title: 'Thank you!',
+    success_sub: 'We will contact you as soon as possible.',
+    sectors: ['Logistics', 'Production', 'Engineering', 'Food', 'Administration', 'Cleaning'],
+    avail: ['Immediately', 'Within 1 month', '> 2 months']
+  },
+  bg: {
+    attract_title: 'Търсите ли<br>работа?',
+    attract_sub: 'Докоснете екрана, за да се регистрирате',
+    form_title: 'Регистрация',
+    form_sub: 'Попълнете данните си и ние ще се свържем с вас',
+    section_personal: 'Лични данни',
+    section_contact: 'Данни за контакт',
+    section_prefs: 'Предпочитания',
+    label_firstname: 'Име <span class="req">*</span>',
+    label_lastname: 'Фамилия <span class="req">*</span>',
+    label_dob: 'Дата на раждане <span class="req">*</span>',
+    label_city: 'Град <span class="req">*</span>',
+    label_phone: 'Телефонен номер <span class="req">*</span>',
+    label_email: 'Имейл адрес',
+    label_sector: 'В кой сектор искате да работите? <span class="req">*</span>',
+    label_available: 'Кога сте на разположение? <span class="req">*</span>',
+    label_hours: 'Пълно или непълно работно време? <span class="req">*</span>',
+    ph_firstname: 'Иван',
+    ph_lastname: 'Иванов',
+    ph_year: 'ГГГГ',
+    ph_city: 'Венло',
+    btn_next: 'Следващ',
+    btn_back: 'Назад',
+    btn_submit: 'Изпрати',
+    opt_both: 'Без предпочитание',
+    err_required: 'Това поле е задължително',
+    err_dob: 'Въведете валидна дата на раждане',
+    err_phone: 'Въведете валиден телефонен номер',
+    err_email: 'Въведете валиден имейл адрес',
+    err_sector: 'Изберете поне един сектор',
+    err_available: 'Направете избор',
+    err_hours: 'Направете избор',
+    privacy: 'С регистрацията си се съгласявате с обработката на вашите данни от ENJOB Personeelsdiensten. Ще се свържем с вас възможно най-скоро.',
+    success_title: 'Благодарим!',
+    success_sub: 'Ще се свържем с вас възможно най-скоро.',
+    sectors: ['Логистика', 'Производство', 'Техника', 'Храни', 'Администрация', 'Почистване'],
+    avail: ['Веднага', 'До 1 месец', '> 2 месеца']
+  },
+  pl: {
+    attract_title: 'Szukasz<br>pracy?',
+    attract_sub: 'Dotknij ekranu, aby się zarejestrować',
+    form_title: 'Rejestracja',
+    form_sub: 'Wypełnij swoje dane, a my się z Tobą skontaktujemy',
+    section_personal: 'Dane osobowe',
+    section_contact: 'Dane kontaktowe',
+    section_prefs: 'Preferencje',
+    label_firstname: 'Imię <span class="req">*</span>',
+    label_lastname: 'Nazwisko <span class="req">*</span>',
+    label_dob: 'Data urodzenia <span class="req">*</span>',
+    label_city: 'Miasto <span class="req">*</span>',
+    label_phone: 'Numer telefonu <span class="req">*</span>',
+    label_email: 'Adres e-mail',
+    label_sector: 'W jakim sektorze chcesz pracować? <span class="req">*</span>',
+    label_available: 'Kiedy jesteś dostępny/a? <span class="req">*</span>',
+    label_hours: 'Pełny czy niepełny etat? <span class="req">*</span>',
+    ph_firstname: 'Jan',
+    ph_lastname: 'Kowalski',
+    ph_year: 'RRRR',
+    ph_city: 'Venlo',
+    btn_next: 'Dalej',
+    btn_back: 'Wstecz',
+    btn_submit: 'Wyślij',
+    opt_both: 'Bez preferencji',
+    err_required: 'To pole jest wymagane',
+    err_dob: 'Podaj prawidłową datę urodzenia',
+    err_phone: 'Podaj prawidłowy numer telefonu',
+    err_email: 'Podaj prawidłowy adres e-mail',
+    err_sector: 'Wybierz przynajmniej jeden sektor',
+    err_available: 'Dokonaj wyboru',
+    err_hours: 'Dokonaj wyboru',
+    privacy: 'Rejestrując się, wyrażasz zgodę na przetwarzanie swoich danych przez ENJOB Personeelsdiensten. Skontaktujemy się z Tobą jak najszybciej.',
+    success_title: 'Dziękujemy!',
+    success_sub: 'Skontaktujemy się z Tobą jak najszybciej.',
+    sectors: ['Logistyka', 'Produkcja', 'Technika', 'Żywność', 'Administracja', 'Sprzątanie'],
+    avail: ['Od zaraz', 'W ciągu 1 miesiąca', '> 2 miesiące']
+  },
+  ro: {
+    attract_title: 'Cauți un<br>loc de muncă?',
+    attract_sub: 'Atinge ecranul pentru a te înregistra',
+    form_title: 'Înregistrare',
+    form_sub: 'Completează datele tale și te vom contacta',
+    section_personal: 'Date personale',
+    section_contact: 'Date de contact',
+    section_prefs: 'Preferințe',
+    label_firstname: 'Prenume <span class="req">*</span>',
+    label_lastname: 'Nume <span class="req">*</span>',
+    label_dob: 'Data nașterii <span class="req">*</span>',
+    label_city: 'Oraș <span class="req">*</span>',
+    label_phone: 'Număr de telefon <span class="req">*</span>',
+    label_email: 'Adresă de email',
+    label_sector: 'În ce sector vrei să lucrezi? <span class="req">*</span>',
+    label_available: 'Când ești disponibil/ă? <span class="req">*</span>',
+    label_hours: 'Full-time sau part-time? <span class="req">*</span>',
+    ph_firstname: 'Ion',
+    ph_lastname: 'Popescu',
+    ph_year: 'AAAA',
+    ph_city: 'Venlo',
+    btn_next: 'Următorul',
+    btn_back: 'Înapoi',
+    btn_submit: 'Trimite',
+    opt_both: 'Fără preferință',
+    err_required: 'Acest câmp este obligatoriu',
+    err_dob: 'Introduceți o dată de naștere validă',
+    err_phone: 'Introduceți un număr de telefon valid',
+    err_email: 'Introduceți o adresă de email validă',
+    err_sector: 'Selectați cel puțin un sector',
+    err_available: 'Faceți o alegere',
+    err_hours: 'Faceți o alegere',
+    privacy: 'Prin înregistrare, ești de acord cu prelucrarea datelor tale de către ENJOB Personeelsdiensten. Te vom contacta cât mai curând posibil.',
+    success_title: 'Mulțumim!',
+    success_sub: 'Te vom contacta cât mai curând posibil.',
+    sectors: ['Logistică', 'Producție', 'Tehnică', 'Alimentar', 'Administrație', 'Curățenie'],
+    avail: ['Imediat', 'În 1 lună', '> 2 luni']
+  }
+};
+
+const LANG_LABELS = { nl: '🇳🇱 NL', en: '🇬🇧 EN', bg: '🇧🇬 BG', pl: '🇵🇱 PL', ro: '🇷🇴 RO' };
+let currentLang = 'nl';
+let currentStep = 1;
+const totalSteps = 3;
+let selectedSectors = [];
+let selectedAvail = null;
+let selectedHours = null;
+let countdownTimer = null;
+
+// ============================================================
+// WEBHOOK CONFIG — change this URL to your actual webhook
+// ============================================================
+const WEBHOOK_URL = 'https://hook.eu2.make.com/tlugkms7rqt3she6um5f7v1197yccms1';
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  buildLangSelector();
+  applyLang('nl');
+}
+
+function buildLangSelector() {
+  const container = document.getElementById('langSelector');
+  container.innerHTML = '';
+  Object.entries(LANG_LABELS).forEach(([code, label]) => {
+    const btn = document.createElement('button');
+    btn.className = 'lang-btn' + (code === currentLang ? ' active' : '');
+    btn.textContent = label;
+    btn.onclick = () => applyLang(code);
+    container.appendChild(btn);
+  });
+}
+
+function applyLang(lang) {
+  currentLang = lang;
+  const t = T[lang];
+
+  // Update lang buttons
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent === LANG_LABELS[lang]);
+  });
+
+  // Update all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (t[key] !== undefined) el.innerHTML = t[key];
+  });
+
+  // Update placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (t[key]) el.placeholder = t[key];
+  });
+
+  // Rebuild sector cards
+  buildSectorCards(t.sectors);
+  buildAvailCards(t.avail);
+  buildHoursToggle(t);
+}
+
+function buildSectorCards(sectors) {
+  const grid = document.getElementById('sectorGrid');
+  grid.innerHTML = '';
+  sectors.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'choice-card' + (selectedSectors.includes(s) ? ' selected' : '');
+    card.textContent = s;
+    card.onclick = () => toggleSector(card, s);
+    grid.appendChild(card);
+  });
+}
+
+function buildAvailCards(options) {
+  const grid = document.getElementById('availGrid');
+  grid.innerHTML = '';
+  options.forEach((opt, i) => {
+    const card = document.createElement('div');
+    card.className = 'choice-card' + (selectedAvail === i ? ' selected' : '');
+    card.textContent = opt;
+    card.onclick = () => {
+      selectedAvail = i;
+      grid.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      document.getElementById('availError').classList.remove('show');
+    };
+    grid.appendChild(card);
+  });
+}
+
+function buildHoursToggle(t) {
+  const toggle = document.getElementById('hoursToggle');
+  const options = toggle.querySelectorAll('.toggle-option');
+  options[0].textContent = 'Fulltime';
+  options[1].textContent = 'Parttime';
+  options[2].textContent = t.opt_both;
+  options.forEach(o => {
+    o.classList.toggle('selected', o.dataset.value === selectedHours);
+  });
+}
+
+function toggleSector(card, sector) {
+  const idx = selectedSectors.indexOf(sector);
+  if (idx > -1) {
+    selectedSectors.splice(idx, 1);
+    card.classList.remove('selected');
+  } else {
+    selectedSectors.push(sector);
+    card.classList.add('selected');
+  }
+  document.getElementById('sectorError').classList.remove('show');
+}
+
+function selectToggle(el) {
+  selectedHours = el.dataset.value;
+  el.parentElement.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('hoursError').classList.remove('show');
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function startForm() {
+  document.getElementById('video-screen').classList.add('hidden');
+  document.getElementById('form-screen').classList.add('visible');
+}
+
+function goToVideo() {
+  document.getElementById('form-screen').classList.remove('visible');
+  setTimeout(() => {
+    document.getElementById('video-screen').classList.remove('hidden');
+    resetForm();
+  }, 400);
+}
+
+function nextStep() {
+  if (!validateStep(currentStep)) return;
+  if (currentStep < totalSteps) {
+    document.getElementById('step' + currentStep).classList.remove('active');
+    currentStep++;
+    document.getElementById('step' + currentStep).classList.add('active');
+    updateProgress();
+    document.getElementById('formWrapper').scrollTop = 0;
+  }
+}
+
+function prevStep() {
+  if (currentStep > 1) {
+    document.getElementById('step' + currentStep).classList.remove('active');
+    currentStep--;
+    document.getElementById('step' + currentStep).classList.add('active');
+    updateProgress();
+    document.getElementById('formWrapper').scrollTop = 0;
+  }
+}
+
+function updateProgress() {
+  const steps = document.querySelectorAll('.progress-step');
+  steps.forEach((s, i) => {
+    s.classList.remove('active', 'done');
+    if (i + 1 === currentStep) s.classList.add('active');
+    else if (i + 1 < currentStep) s.classList.add('done');
+  });
+}
+
+// ============================================================
+// VALIDATION
+// ============================================================
+function validateStep(step) {
+  clearErrors();
+  let valid = true;
+
+  if (step === 1) {
+    if (!val('firstName')) valid = false;
+    if (!val('lastName')) valid = false;
+    if (!val('city')) valid = false;
+    // DOB validation
+    const d = document.getElementById('dobDay').value.trim();
+    const m = document.getElementById('dobMonth').value.trim();
+    const y = document.getElementById('dobYear').value.trim();
+    if (!d || !m || !y || d.length < 1 || m.length < 1 || y.length < 4) {
+      showError('dobDay');
+      document.querySelector('[data-i18n="err_dob"]').classList.add('show');
+      valid = false;
+    } else {
+      const day = parseInt(d), month = parseInt(m), year = parseInt(y);
+      if (isNaN(day) || isNaN(month) || isNaN(year) || day < 1 || day > 31 || month < 1 || month > 12 || year < 1940 || year > 2010) {
+        showError('dobDay');
+        document.querySelector('[data-i18n="err_dob"]').classList.add('show');
+        valid = false;
+      }
+    }
+  }
+
+  if (step === 2) {
+    const phone = document.getElementById('phone').value.trim();
+    if (!phone || phone.length < 8) {
+      showError('phone');
+      document.querySelector('[data-i18n="err_phone"]').classList.add('show');
+      valid = false;
+    }
+    const email = document.getElementById('email').value.trim();
+    if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      showError('email');
+      document.querySelector('[data-i18n="err_email"]').classList.add('show');
+      valid = false;
+    }
+  }
+
+  if (step === 3) {
+    if (selectedSectors.length === 0) {
+      document.getElementById('sectorError').classList.add('show');
+      valid = false;
+    }
+    if (selectedAvail === null) {
+      document.getElementById('availError').classList.add('show');
+      valid = false;
+    }
+    if (!selectedHours) {
+      document.getElementById('hoursError').classList.add('show');
+      valid = false;
+    }
+  }
+
+  return valid;
+}
+
+function val(id) {
+  const el = document.getElementById(id);
+  if (!el.value.trim()) {
+    showError(id);
+    el.closest('.field-group').querySelector('.error-text').classList.add('show');
+    return false;
+  }
+  return true;
+}
+
+function showError(id) {
+  document.getElementById(id).classList.add('error');
+}
+
+function clearErrors() {
+  document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+  document.querySelectorAll('.error-text').forEach(el => el.classList.remove('show'));
+}
+
+// ============================================================
+// SUBMIT
+// ============================================================
+async function submitForm() {
+  if (!validateStep(3)) return;
+
+  const t = T[currentLang];
+  const availMap = { 0: 'immediately', 1: 'within_1_month', 2: 'more_than_2_months' };
+
+  const data = {
+    language: currentLang,
+    first_name: document.getElementById('firstName').value.trim(),
+    last_name: document.getElementById('lastName').value.trim(),
+    date_of_birth: `${document.getElementById('dobDay').value.trim().padStart(2,'0')}-${document.getElementById('dobMonth').value.trim().padStart(2,'0')}-${document.getElementById('dobYear').value.trim()}`,
+    city: document.getElementById('city').value.trim(),
+    phone: document.getElementById('phone').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    sectors: selectedSectors,
+    availability: availMap[selectedAvail] || '',
+    hours: selectedHours,
+    registered_at: new Date().toISOString(),
+    source: 'kiosk'
+  };
+
+  // Send to webhook
+  try {
+    const response = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    console.log('✅ Webhook response:', response.status);
+  } catch (e) {
+    console.warn('⚠️ Webhook error:', e);
+    // Still show success — don't block the kiosk flow
+  }
+
+  // Also log to console for debugging
+  console.log('📋 Form submitted:', data);
+
+  showSuccess();
+}
+
+// ============================================================
+// SUCCESS + COUNTDOWN
+// ============================================================
+function showSuccess() {
+  const screen = document.getElementById('success-screen');
+  screen.style.display = 'flex';
+  requestAnimationFrame(() => screen.classList.add('visible'));
+
+  // Start countdown
+  const circle = document.getElementById('countdownCircle');
+  const num = document.getElementById('countdownNum');
+  let count = 5;
+  num.textContent = count;
+
+  requestAnimationFrame(() => circle.classList.add('animate'));
+
+  countdownTimer = setInterval(() => {
+    count--;
+    num.textContent = count;
+    if (count <= 0) {
+      clearInterval(countdownTimer);
+      screen.classList.remove('visible');
+      setTimeout(() => {
+        screen.style.display = 'none';
+        circle.classList.remove('animate');
+        goToVideo();
+      }, 400);
+    }
+  }, 1000);
+}
+
+// ============================================================
+// RESET
+// ============================================================
+function resetForm() {
+  currentStep = 1;
+  selectedSectors = [];
+  selectedAvail = null;
+  selectedHours = null;
+
+  document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step1').classList.add('active');
+  updateProgress();
+  clearErrors();
+
+  // Clear inputs
+  ['firstName', 'lastName', 'dobDay', 'dobMonth', 'dobYear', 'city', 'phone', 'email'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+
+  // Clear selections
+  document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('selected'));
+
+  document.getElementById('formWrapper').scrollTop = 0;
+}
+
+// Auto-advance date fields
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+
+  const dobDay = document.getElementById('dobDay');
+  const dobMonth = document.getElementById('dobMonth');
+  const dobYear = document.getElementById('dobYear');
+
+  dobDay.addEventListener('input', () => {
+    if (dobDay.value.length >= 2) dobMonth.focus();
+  });
+  dobMonth.addEventListener('input', () => {
+    if (dobMonth.value.length >= 2) dobYear.focus();
+  });
+});
+
+// Inactivity timeout — reset after 60 seconds of no interaction on form
+let inactivityTimer;
+function resetInactivity() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => {
+    if (!document.getElementById('video-screen').classList.contains('hidden')) return;
+    if (document.getElementById('success-screen').style.display === 'flex') return;
+    goToVideo();
+  }, 60000);
+}
+document.addEventListener('touchstart', resetInactivity);
+document.addEventListener('click', resetInactivity);
+document.addEventListener('input', resetInactivity);
+</script>
+</body>
+</html>

@@ -914,6 +914,20 @@
       </div>
       <span class="error-text" id="licenseError" data-i18n="err_license" style="margin-top:4px">Maak een keuze</span>
 
+      <label style="font-size:15px;font-weight:600;margin:24px 0 10px;display:block" data-i18n="label_transport">Heb je eigen vervoer? <span class="req">*</span></label>
+      <div class="toggle-group" id="transportToggle">
+        <div class="toggle-option" data-value="yes" onclick="selectTransport(this)" data-i18n="opt_yes">Ja</div>
+        <div class="toggle-option" data-value="no" onclick="selectTransport(this)" data-i18n="opt_no">Nee</div>
+      </div>
+      <span class="error-text" id="transportError" data-i18n="err_transport" style="margin-top:4px">Maak een keuze</span>
+
+      <label style="font-size:15px;font-weight:600;margin:24px 0 10px;display:block" data-i18n="label_housing">Heb je eigen huisvesting? <span class="req">*</span></label>
+      <div class="toggle-group" id="housingToggle">
+        <div class="toggle-option" data-value="yes" onclick="selectHousing(this)" data-i18n="opt_yes">Ja</div>
+        <div class="toggle-option" data-value="no" onclick="selectHousing(this)" data-i18n="opt_no">Nee</div>
+      </div>
+      <span class="error-text" id="housingError" data-i18n="err_housing" style="margin-top:4px">Maak een keuze</span>
+
       <div class="nav-buttons">
         <button class="btn btn-back" onclick="prevStep()">← <span data-i18n="btn_back">Terug</span></button>
         <button class="btn btn-next" onclick="nextStep()"><span data-i18n="btn_next">Volgende</span> →</button>
@@ -1019,6 +1033,12 @@ const T = {
     opt_license_yes: 'Ja',
     opt_license_no: 'Nee',
     err_license: 'Maak een keuze',
+    label_transport: 'Heb je eigen vervoer? <span class="req">*</span>',
+    label_housing: 'Heb je eigen huisvesting? <span class="req">*</span>',
+    opt_yes: 'Ja',
+    opt_no: 'Nee',
+    err_transport: 'Maak een keuze',
+    err_housing: 'Maak een keuze',
     section_languages: 'Talenkennis',
     lang_names: ['Nederlands', 'Engels', 'Duits', 'Pools'],
     lang_flags: ['🇳🇱', '🇬🇧', '🇩🇪', '🇵🇱'],
@@ -1071,6 +1091,12 @@ const T = {
     opt_license_yes: 'Yes',
     opt_license_no: 'No',
     err_license: 'Make a choice',
+    label_transport: 'Do you have your own transport? <span class="req">*</span>',
+    label_housing: 'Do you have your own housing? <span class="req">*</span>',
+    opt_yes: 'Yes',
+    opt_no: 'No',
+    err_transport: 'Make a choice',
+    err_housing: 'Make a choice',
     section_languages: 'Language skills',
     lang_names: ['Dutch', 'English', 'German', 'Polish'],
     lang_flags: ['🇳🇱', '🇬🇧', '🇩🇪', '🇵🇱'],
@@ -1123,6 +1149,12 @@ const T = {
     opt_license_yes: 'Ja',
     opt_license_no: 'Nein',
     err_license: 'Bitte wählen',
+    label_transport: 'Hast du ein eigenes Transportmittel? <span class="req">*</span>',
+    label_housing: 'Hast du eine eigene Unterkunft? <span class="req">*</span>',
+    opt_yes: 'Ja',
+    opt_no: 'Nein',
+    err_transport: 'Bitte wählen',
+    err_housing: 'Bitte wählen',
     section_languages: 'Sprachkenntnisse',
     lang_names: ['Niederländisch', 'Englisch', 'Deutsch', 'Polnisch'],
     lang_flags: ['🇳🇱', '🇬🇧', '🇩🇪', '🇵🇱'],
@@ -1175,6 +1207,12 @@ const T = {
     opt_license_yes: 'Да',
     opt_license_no: 'Не',
     err_license: 'Направете избор',
+    label_transport: 'Имате ли собствен транспорт? <span class="req">*</span>',
+    label_housing: 'Имате ли собствено жилище? <span class="req">*</span>',
+    opt_yes: 'Да',
+    opt_no: 'Не',
+    err_transport: 'Направете избор',
+    err_housing: 'Направете избор',
     section_languages: 'Езикови умения',
     lang_names: ['Нидерландски', 'Английски', 'Немски', 'Полски'],
     lang_flags: ['🇳🇱', '🇬🇧', '🇩🇪', '🇵🇱'],
@@ -1227,6 +1265,12 @@ const T = {
     opt_license_yes: 'Tak',
     opt_license_no: 'Nie',
     err_license: 'Dokonaj wyboru',
+    label_transport: 'Czy masz własny transport? <span class="req">*</span>',
+    label_housing: 'Czy masz własne zakwaterowanie? <span class="req">*</span>',
+    opt_yes: 'Tak',
+    opt_no: 'Nie',
+    err_transport: 'Dokonaj wyboru',
+    err_housing: 'Dokonaj wyboru',
     section_languages: 'Znajomość języków',
     lang_names: ['Niderlandzki', 'Angielski', 'Niemiecki', 'Polski'],
     lang_flags: ['🇳🇱', '🇬🇧', '🇩🇪', '🇵🇱'],
@@ -1279,6 +1323,12 @@ const T = {
     opt_license_yes: 'Da',
     opt_license_no: 'Nu',
     err_license: 'Faceți o alegere',
+    label_transport: 'Ai transport propriu? <span class="req">*</span>',
+    label_housing: 'Ai locuință proprie? <span class="req">*</span>',
+    opt_yes: 'Da',
+    opt_no: 'Nu',
+    err_transport: 'Faceți o alegere',
+    err_housing: 'Faceți o alegere',
     section_languages: 'Cunoștințe lingvistice',
     lang_names: ['Olandeză', 'Engleză', 'Germană', 'Poloneză'],
     lang_flags: ['🇳🇱', '🇬🇧', '🇩🇪', '🇵🇱'],
@@ -1312,6 +1362,8 @@ let selectedSectors = [];
 let selectedAvail = null;
 let selectedHours = null;
 let selectedLicense = null;
+let selectedTransport = null;
+let selectedHousing = null;
 let countdownTimer = null;
 
 // ============================================================
@@ -1366,6 +1418,8 @@ function applyLang(lang) {
   buildHoursToggle(t);
   buildLangProfGrid(t);
   buildLicenseToggle(t);
+  buildTransportToggle(t);
+  buildHousingToggle(t);
 }
 
 function buildSectorCards(sectors) {
@@ -1415,6 +1469,26 @@ function buildLicenseToggle(t) {
   options[1].textContent = t.opt_license_no;
   options.forEach(o => {
     o.classList.toggle('selected', o.dataset.value === selectedLicense);
+  });
+}
+
+function buildTransportToggle(t) {
+  const toggle = document.getElementById('transportToggle');
+  const options = toggle.querySelectorAll('.toggle-option');
+  options[0].textContent = t.opt_yes;
+  options[1].textContent = t.opt_no;
+  options.forEach(o => {
+    o.classList.toggle('selected', o.dataset.value === selectedTransport);
+  });
+}
+
+function buildHousingToggle(t) {
+  const toggle = document.getElementById('housingToggle');
+  const options = toggle.querySelectorAll('.toggle-option');
+  options[0].textContent = t.opt_yes;
+  options[1].textContent = t.opt_no;
+  options.forEach(o => {
+    o.classList.toggle('selected', o.dataset.value === selectedHousing);
   });
 }
 
@@ -1474,6 +1548,20 @@ function selectLicense(el) {
   el.parentElement.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
   document.getElementById('licenseError').classList.remove('show');
+}
+
+function selectTransport(el) {
+  selectedTransport = el.dataset.value;
+  el.parentElement.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('transportError').classList.remove('show');
+}
+
+function selectHousing(el) {
+  selectedHousing = el.dataset.value;
+  el.parentElement.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('housingError').classList.remove('show');
 }
 
 function setLangProf(btn, langKey, level) {
@@ -1600,6 +1688,14 @@ function validateStep(step) {
       document.getElementById('licenseError').classList.add('show');
       valid = false;
     }
+    if (!selectedTransport) {
+      document.getElementById('transportError').classList.add('show');
+      valid = false;
+    }
+    if (!selectedHousing) {
+      document.getElementById('housingError').classList.add('show');
+      valid = false;
+    }
   }
 
   return valid;
@@ -1645,6 +1741,8 @@ async function submitForm() {
     availability: availMap[selectedAvail] || '',
     hours: selectedHours,
     driving_license: selectedLicense === 'yes',
+    own_transport: selectedTransport === 'yes',
+    own_housing: selectedHousing === 'yes',
     language_proficiency: Object.fromEntries(
       Object.entries(langProficiency).filter(([k, v]) => v && v !== 'none')
     ),
@@ -1711,6 +1809,8 @@ function resetForm() {
   selectedAvail = null;
   selectedHours = null;
   selectedLicense = null;
+  selectedTransport = null;
+  selectedHousing = null;
   langProficiency = {};
 
   document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));

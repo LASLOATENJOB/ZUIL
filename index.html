@@ -152,6 +152,26 @@
     50% { transform: translateY(-12px); }
   }
 
+  .attract-contact {
+    position: absolute;
+    bottom: 40px;
+    left: 0; right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 1;
+  }
+  .attract-contact-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255,255,255,0.85);
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
   /* ===== FORM SCREEN ===== */
   #form-screen {
     position: fixed;
@@ -577,6 +597,71 @@
     line-height: 1.5;
   }
 
+  /* Language proficiency grid */
+  .lang-prof-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .lang-prof-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    transition: border-color 0.2s;
+  }
+  .lang-prof-row.has-selection {
+    border-color: var(--orange);
+    background: var(--orange-glow);
+  }
+
+  .lang-prof-flag {
+    font-size: 28px;
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+  }
+
+  .lang-prof-name {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 110px;
+  }
+
+  .lang-prof-options {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .lang-prof-btn {
+    padding: 10px 18px;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    background: white;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .lang-prof-btn:hover {
+    border-color: var(--orange-light);
+    color: var(--orange);
+  }
+  .lang-prof-btn.selected {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: white;
+    font-weight: 600;
+  }
+
   /* Keyboard-visible adjustments */
   @media (max-height: 700px) {
     .form-wrapper { padding: 20px 32px; }
@@ -711,6 +796,17 @@
       <circle cx="32" cy="32" r="10" stroke="white" stroke-width="2.5"/>
       <circle cx="32" cy="32" r="3" fill="white"/>
     </svg>
+
+    <div class="attract-contact">
+      <div class="attract-contact-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        077 205 4800
+      </div>
+      <div class="attract-contact-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="22,6 12,13 2,6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        venlo@enjob.nl
+      </div>
+    </div>
   </div>
 </div>
 
@@ -729,6 +825,7 @@
 
     <div class="progress-bar" id="progressBar">
       <div class="progress-step active"></div>
+      <div class="progress-step"></div>
       <div class="progress-step"></div>
       <div class="progress-step"></div>
     </div>
@@ -807,6 +904,25 @@
         <div class="toggle-option" data-value="both" onclick="selectToggle(this)" data-i18n="opt_both">Geen voorkeur</div>
       </div>
       <span class="error-text" id="hoursError" data-i18n="err_hours" style="margin-top:4px">Maak een keuze</span>
+
+      <label style="font-size:15px;font-weight:600;margin:24px 0 10px;display:block" data-i18n="label_license">Heb je een rijbewijs? <span class="req">*</span></label>
+      <div class="toggle-group" id="licenseToggle">
+        <div class="toggle-option" data-value="yes" onclick="selectLicense(this)" data-i18n="opt_license_yes">Ja</div>
+        <div class="toggle-option" data-value="no" onclick="selectLicense(this)" data-i18n="opt_license_no">Nee</div>
+      </div>
+      <span class="error-text" id="licenseError" data-i18n="err_license" style="margin-top:4px">Maak een keuze</span>
+
+      <div class="nav-buttons">
+        <button class="btn btn-back" onclick="prevStep()">← <span data-i18n="btn_back">Terug</span></button>
+        <button class="btn btn-next" onclick="nextStep()"><span data-i18n="btn_next">Volgende</span> →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Language proficiency -->
+    <div class="form-step" id="step4">
+      <div class="section-title"><span class="icon">🌍</span> <span data-i18n="section_languages">Talenkennis</span></div>
+
+      <div id="langProfGrid" class="lang-prof-grid"></div>
 
       <div class="privacy-note" data-i18n="privacy">
         Door je te registreren ga je akkoord met de verwerking van je gegevens door ENJOB Personeelsdiensten. We nemen zo snel mogelijk contact met je op.
@@ -897,6 +1013,16 @@ const T = {
     btn_back: 'Terug',
     btn_submit: 'Verstuur',
     opt_both: 'Geen voorkeur',
+    label_license: 'Heb je een rijbewijs? <span class="req">*</span>',
+    opt_license_yes: 'Ja',
+    opt_license_no: 'Nee',
+    err_license: 'Maak een keuze',
+    section_languages: 'Talenkennis',
+    lang_names: ['Nederlands', 'Engels', 'Duits', 'Frans', 'Pools', 'Roemeens', 'Bulgaars'],
+    lang_flags: ['🇳🇱', '🇬🇧', '🇩🇪', '🇫🇷', '🇵🇱', '🇷🇴', '🇧🇬'],
+    prof_none: 'Niet',
+    prof_basic: 'Basis',
+    prof_advanced: 'Gevorderd',
     err_required: 'Dit veld is verplicht',
     err_dob: 'Vul een geldige geboortedatum in',
     err_phone: 'Vul een geldig telefoonnummer in',
@@ -939,6 +1065,16 @@ const T = {
     btn_back: 'Back',
     btn_submit: 'Submit',
     opt_both: 'No preference',
+    label_license: 'Do you have a driving license? <span class="req">*</span>',
+    opt_license_yes: 'Yes',
+    opt_license_no: 'No',
+    err_license: 'Make a choice',
+    section_languages: 'Language skills',
+    lang_names: ['Dutch', 'English', 'German', 'French', 'Polish', 'Romanian', 'Bulgarian'],
+    lang_flags: ['🇳🇱', '🇬🇧', '🇩🇪', '🇫🇷', '🇵🇱', '🇷🇴', '🇧🇬'],
+    prof_none: 'None',
+    prof_basic: 'Basic',
+    prof_advanced: 'Advanced',
     err_required: 'This field is required',
     err_dob: 'Enter a valid date of birth',
     err_phone: 'Enter a valid phone number',
@@ -981,6 +1117,16 @@ const T = {
     btn_back: 'Назад',
     btn_submit: 'Изпрати',
     opt_both: 'Без предпочитание',
+    label_license: 'Имате ли шофьорска книжка? <span class="req">*</span>',
+    opt_license_yes: 'Да',
+    opt_license_no: 'Не',
+    err_license: 'Направете избор',
+    section_languages: 'Езикови умения',
+    lang_names: ['Нидерландски', 'Английски', 'Немски', 'Френски', 'Полски', 'Румънски', 'Български'],
+    lang_flags: ['🇳🇱', '🇬🇧', '🇩🇪', '🇫🇷', '🇵🇱', '🇷🇴', '🇧🇬'],
+    prof_none: 'Не',
+    prof_basic: 'Основно',
+    prof_advanced: 'Напреднало',
     err_required: 'Това поле е задължително',
     err_dob: 'Въведете валидна дата на раждане',
     err_phone: 'Въведете валиден телефонен номер',
@@ -1023,6 +1169,16 @@ const T = {
     btn_back: 'Wstecz',
     btn_submit: 'Wyślij',
     opt_both: 'Bez preferencji',
+    label_license: 'Czy posiadasz prawo jazdy? <span class="req">*</span>',
+    opt_license_yes: 'Tak',
+    opt_license_no: 'Nie',
+    err_license: 'Dokonaj wyboru',
+    section_languages: 'Znajomość języków',
+    lang_names: ['Niderlandzki', 'Angielski', 'Niemiecki', 'Francuski', 'Polski', 'Rumuński', 'Bułgarski'],
+    lang_flags: ['🇳🇱', '🇬🇧', '🇩🇪', '🇫🇷', '🇵🇱', '🇷🇴', '🇧🇬'],
+    prof_none: 'Nie',
+    prof_basic: 'Podstawowy',
+    prof_advanced: 'Zaawansowany',
     err_required: 'To pole jest wymagane',
     err_dob: 'Podaj prawidłową datę urodzenia',
     err_phone: 'Podaj prawidłowy numer telefonu',
@@ -1065,6 +1221,16 @@ const T = {
     btn_back: 'Înapoi',
     btn_submit: 'Trimite',
     opt_both: 'Fără preferință',
+    label_license: 'Ai permis de conducere? <span class="req">*</span>',
+    opt_license_yes: 'Da',
+    opt_license_no: 'Nu',
+    err_license: 'Faceți o alegere',
+    section_languages: 'Cunoștințe lingvistice',
+    lang_names: ['Olandeză', 'Engleză', 'Germană', 'Franceză', 'Poloneză', 'Română', 'Bulgară'],
+    lang_flags: ['🇳🇱', '🇬🇧', '🇩🇪', '🇫🇷', '🇵🇱', '🇷🇴', '🇧🇬'],
+    prof_none: 'Nu',
+    prof_basic: 'Bază',
+    prof_advanced: 'Avansat',
     err_required: 'Acest câmp este obligatoriu',
     err_dob: 'Introduceți o dată de naștere validă',
     err_phone: 'Introduceți un număr de telefon valid',
@@ -1087,10 +1253,11 @@ const T = {
 const LANG_LABELS = { nl: '🇳🇱 NL', en: '🇬🇧 EN', bg: '🇧🇬 BG', pl: '🇵🇱 PL', ro: '🇷🇴 RO' };
 let currentLang = 'nl';
 let currentStep = 1;
-const totalSteps = 3;
+const totalSteps = 4;
 let selectedSectors = [];
 let selectedAvail = null;
 let selectedHours = null;
+let selectedLicense = null;
 let countdownTimer = null;
 
 // ============================================================
@@ -1143,6 +1310,8 @@ function applyLang(lang) {
   buildSectorCards(t.sectors);
   buildAvailCards(t.avail);
   buildHoursToggle(t);
+  buildLangProfGrid(t);
+  buildLicenseToggle(t);
 }
 
 function buildSectorCards(sectors) {
@@ -1185,6 +1354,48 @@ function buildHoursToggle(t) {
   });
 }
 
+function buildLicenseToggle(t) {
+  const toggle = document.getElementById('licenseToggle');
+  const options = toggle.querySelectorAll('.toggle-option');
+  options[0].textContent = t.opt_license_yes;
+  options[1].textContent = t.opt_license_no;
+  options.forEach(o => {
+    o.classList.toggle('selected', o.dataset.value === selectedLicense);
+  });
+}
+
+// Language proficiency keys (internal, language-independent)
+const LANG_KEYS = ['dutch', 'english', 'german', 'french', 'polish', 'romanian', 'bulgarian'];
+let langProficiency = {}; // e.g. { dutch: 'basic', english: 'advanced' }
+
+function buildLangProfGrid(t) {
+  const grid = document.getElementById('langProfGrid');
+  grid.innerHTML = '';
+  const levels = [
+    { key: 'none', label: t.prof_none },
+    { key: 'basic', label: t.prof_basic },
+    { key: 'advanced', label: t.prof_advanced }
+  ];
+
+  t.lang_names.forEach((name, i) => {
+    const langKey = LANG_KEYS[i];
+    const row = document.createElement('div');
+    row.className = 'lang-prof-row' + (langProficiency[langKey] && langProficiency[langKey] !== 'none' ? ' has-selection' : '');
+    row.innerHTML = `
+      <span class="lang-prof-flag">${t.lang_flags[i]}</span>
+      <span class="lang-prof-name">${name}</span>
+      <div class="lang-prof-options">
+        ${levels.map(lv => `
+          <button class="lang-prof-btn${langProficiency[langKey] === lv.key ? ' selected' : ''}"
+                  data-lang="${langKey}" data-level="${lv.key}"
+                  onclick="setLangProf(this, '${langKey}', '${lv.key}')">${lv.label}</button>
+        `).join('')}
+      </div>
+    `;
+    grid.appendChild(row);
+  });
+}
+
 function toggleSector(card, sector) {
   const idx = selectedSectors.indexOf(sector);
   if (idx > -1) {
@@ -1202,6 +1413,23 @@ function selectToggle(el) {
   el.parentElement.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
   document.getElementById('hoursError').classList.remove('show');
+}
+
+function selectLicense(el) {
+  selectedLicense = el.dataset.value;
+  el.parentElement.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('licenseError').classList.remove('show');
+}
+
+function setLangProf(btn, langKey, level) {
+  langProficiency[langKey] = level;
+  // Update buttons in this row
+  const row = btn.closest('.lang-prof-row');
+  row.querySelectorAll('.lang-prof-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  // Highlight row if not 'none'
+  row.classList.toggle('has-selection', level !== 'none');
 }
 
 // ============================================================
@@ -1314,6 +1542,10 @@ function validateStep(step) {
       document.getElementById('hoursError').classList.add('show');
       valid = false;
     }
+    if (!selectedLicense) {
+      document.getElementById('licenseError').classList.add('show');
+      valid = false;
+    }
   }
 
   return valid;
@@ -1342,7 +1574,7 @@ function clearErrors() {
 // SUBMIT
 // ============================================================
 async function submitForm() {
-  if (!validateStep(3)) return;
+  // Step 4 (language proficiency) is optional — no validation needed
 
   const t = T[currentLang];
   const availMap = { 0: 'immediately', 1: 'within_1_month', 2: 'more_than_2_months' };
@@ -1358,6 +1590,10 @@ async function submitForm() {
     sectors: selectedSectors,
     availability: availMap[selectedAvail] || '',
     hours: selectedHours,
+    driving_license: selectedLicense === 'yes',
+    language_proficiency: Object.fromEntries(
+      Object.entries(langProficiency).filter(([k, v]) => v && v !== 'none')
+    ),
     registered_at: new Date().toISOString(),
     source: 'kiosk'
   };
@@ -1420,6 +1656,8 @@ function resetForm() {
   selectedSectors = [];
   selectedAvail = null;
   selectedHours = null;
+  selectedLicense = null;
+  langProficiency = {};
 
   document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
   document.getElementById('step1').classList.add('active');
@@ -1434,6 +1672,8 @@ function resetForm() {
   // Clear selections
   document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
   document.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('selected'));
+  document.querySelectorAll('.lang-prof-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.lang-prof-row').forEach(r => r.classList.remove('has-selection'));
 
   document.getElementById('formWrapper').scrollTop = 0;
 }

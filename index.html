@@ -985,7 +985,7 @@
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ============================================================
 // TRANSLATIONS
 // ============================================================
@@ -1966,4 +1966,12 @@ function hideInactivityPopup() {
   clearInterval(popupCountdown);
   clearTimeout(inactivityTimer);
   const overlay = document.getElementById('inactivity-overlay');
-  overl
+  overlay.classList.remove('visible');
+}
+
+document.addEventListener('touchstart', resetInactivity);
+document.addEventListener('click', resetInactivity);
+document.addEventListener('input', resetInactivity);
+</script>
+</body>
+</html>

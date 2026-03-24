@@ -161,6 +161,7 @@
     align-items: center;
     gap: 10px;
     z-index: 1;
+    pointer-events: none;
   }
   .attract-contact-item {
     display: flex;
@@ -804,7 +805,7 @@
       </div>
       <div class="attract-contact-item">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><polyline points="22,6 12,13 2,6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d1a7b4bfbdbe91b4bfbbbeb3ffbfbd">[email&#160;protected]</a>
+        <span id="contactEmail"></span>
       </div>
     </div>
   </div>
@@ -1733,6 +1734,8 @@ function resetForm() {
 // Auto-advance date fields
 document.addEventListener('DOMContentLoaded', () => {
   init();
+  // Render email via JS to prevent Cloudflare email obfuscation
+  document.getElementById('contactEmail').textContent = ['venlo', 'enjob.nl'].join('@');
   startAttractRotation();
 
   const dobDay = document.getElementById('dobDay');

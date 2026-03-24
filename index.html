@@ -53,6 +53,15 @@
   }
   #video-screen.hidden { opacity: 0; pointer-events: none; }
 
+  /* Hidden admin refresh zone — top-left corner */
+  #adminRefresh {
+    position: absolute;
+    top: 0; left: 0;
+    width: 80px; height: 80px;
+    z-index: 110;
+    cursor: default;
+  }
+
   #video-screen video {
     width: 100%; height: 100%;
     object-fit: cover;
@@ -788,6 +797,8 @@
 
 <!-- ===== VIDEO / ATTRACT SCREEN ===== -->
 <div id="video-screen" onclick="startForm()">
+  <!-- Admin refresh: tap top-left corner 3x quickly -->
+  <div id="adminRefresh" onclick="event.stopPropagation(); adminTap();"></div>
   <!-- Replace the placeholder below with: <video src="your-video.mp4" autoplay muted loop playsinline></video> -->
   <div class="video-placeholder">
     <img class="placeholder-logo" src="https://cdn.prod.website-files.com/68d0f53fcf3e1c5acdd64bfc/68d1001e3918dca553085563_Logo_ENJOB_wit_PNG.png" alt="ENJOB">
@@ -2072,6 +2083,23 @@ function hideInactivityPopup() {
 document.addEventListener('touchstart', resetInactivity);
 document.addEventListener('click', resetInactivity);
 document.addEventListener('input', resetInactivity);
+
+// ============================================================
+// ADMIN REFRESH — tap top-left corner 3x within 2 seconds
+// ============================================================
+let adminTaps = 0;
+let adminTapTimer = null;
+function adminTap() {
+  adminTaps++;
+  if (adminTaps === 1) {
+    adminTapTimer = setTimeout(() => { adminTaps = 0; }, 2000);
+  }
+  if (adminTaps >= 3) {
+    clearTimeout(adminTapTimer);
+    adminTaps = 0;
+    location.reload();
+  }
+}
 </script>
 </body>
 </html>

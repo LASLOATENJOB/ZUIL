@@ -114,18 +114,30 @@
     position: relative; z-index: 1;
     line-height: 1.15;
     margin-bottom: 24px;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .placeholder-title.fade-out {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  .placeholder-title.fade-in {
+    opacity: 0;
+    transform: translateY(16px);
   }
 
   .placeholder-sub {
     font-size: 28px;
     color: rgba(255,255,255,0.85);
     position: relative; z-index: 1;
-    animation: pulse 2.5s ease-in-out infinite;
+    transition: opacity 0.6s ease, transform 0.6s ease;
   }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
+  .placeholder-sub.fade-out {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  .placeholder-sub.fade-in {
+    opacity: 0;
+    transform: translateY(12px);
   }
 
   .touch-icon {
@@ -995,6 +1007,7 @@ function selectToggle(el) {
 // NAVIGATION
 // ============================================================
 function startForm() {
+  stopAttractRotation();
   document.getElementById('video-screen').classList.add('hidden');
   document.getElementById('form-screen').classList.add('visible');
 }
@@ -1004,6 +1017,12 @@ function goToVideo() {
   setTimeout(() => {
     document.getElementById('video-screen').classList.remove('hidden');
     resetForm();
+    // Reset attract text to Dutch and restart rotation
+    const titleEl = document.querySelector('.placeholder-title');
+    const subEl = document.querySelector('.placeholder-sub');
+    if (titleEl) titleEl.innerHTML = T.nl.attract_title;
+    if (subEl) subEl.innerHTML = T.nl.attract_sub;
+    startAttractRotation();
   }, 400);
 }
 
@@ -1221,6 +1240,7 @@ function resetForm() {
 // Auto-advance date fields
 document.addEventListener('DOMContentLoaded', () => {
   init();
+  startAttractRotation();
 
   const dobDay = document.getElementById('dobDay');
   const dobMonth = document.getElementById('dobMonth');
@@ -1233,6 +1253,60 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dobMonth.value.length >= 2) dobYear.focus();
   });
 });
+
+// ============================================================
+// ATTRACT SCREEN — rotating multilingual text
+// ============================================================
+const attractLangs = ['nl', 'en', 'bg', 'pl', 'ro'];
+let attractIndex = 0;
+let attractInterval = null;
+
+function startAttractRotation() {
+  stopAttractRotation();
+  attractIndex = 0;
+  attractInterval = setInterval(rotateAttractText, 4000);
+}
+
+function stopAttractRotation() {
+  if (attractInterval) {
+    clearInterval(attractInterval);
+    attractInterval = null;
+  }
+}
+
+function rotateAttractText() {
+  const titleEl = document.querySelector('.placeholder-title');
+  const subEl = document.querySelector('.placeholder-sub');
+  if (!titleEl || !subEl) return;
+
+  // Fade out
+  titleEl.classList.add('fade-out');
+  subEl.classList.add('fade-out');
+
+  setTimeout(() => {
+    // Advance to next language
+    attractIndex = (attractIndex + 1) % attractLangs.length;
+    const lang = attractLangs[attractIndex];
+
+    // Swap text while hidden
+    titleEl.innerHTML = T[lang].attract_title;
+    subEl.innerHTML = T[lang].attract_sub;
+
+    // Prepare fade-in position
+    titleEl.classList.remove('fade-out');
+    titleEl.classList.add('fade-in');
+    subEl.classList.remove('fade-out');
+    subEl.classList.add('fade-in');
+
+    // Trigger fade in on next frame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        titleEl.classList.remove('fade-in');
+        subEl.classList.remove('fade-in');
+      });
+    });
+  }, 600);
+}
 
 // Inactivity timeout — reset after 60 seconds of no interaction on form
 let inactivityTimer;

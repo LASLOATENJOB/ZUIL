@@ -206,11 +206,50 @@
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     padding: 32px 40px 40px;
+    position: relative;
   }
 
   .form-wrapper::-webkit-scrollbar { width: 6px; }
   .form-wrapper::-webkit-scrollbar-track { background: transparent; }
   .form-wrapper::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+
+  /* Scroll-down hint */
+  .scroll-hint {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(to top, var(--bg) 30%, transparent);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 12px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  .scroll-hint.hidden { opacity: 0; }
+
+  .scroll-hint-arrow {
+    width: 44px;
+    height: 44px;
+    background: var(--orange);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(245, 130, 32, 0.35);
+    animation: bounceDown 1.5s ease-in-out infinite;
+    pointer-events: auto;
+  }
+  .scroll-hint-arrow svg { width: 22px; height: 22px; }
+
+  @keyframes bounceDown {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+  }
 
   .form-header {
     text-align: center;
@@ -775,10 +814,15 @@
         <button class="btn btn-submit" onclick="submitForm()">✓ <span data-i18n="btn_submit">Verstuur</span></button>
       </div>
     </div>
+
+    <!-- Scroll hint for overflowing steps -->
+    <div class="scroll-hint hidden" id="scrollHint">
+      <div class="scroll-hint-arrow">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
   </div>
 </div>
-
-<!-- ===== SUCCESS SCREEN ===== -->
 <div id="success-screen">
   <div class="success-check">
     <svg viewBox="0 0 56 56" fill="none"><path d="M14 28l10 10 18-20" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1406,6 +1450,78 @@ document.addEventListener('DOMContentLoaded', () => {
   dobMonth.addEventListener('input', () => {
     if (dobMonth.value.length >= 2) dobYear.focus();
   });
+
+  // ============================================================
+  // KEYBOARD-AWARE SCROLLING
+  // ============================================================
+  const formWrapper = document.getElementById('formWrapper');
+
+  // When any input/select gets focus, scroll it into view
+  // This ensures content below the keyboard fold is always visible
+  document.addEventListener('focusin', (e) => {
+    const el = e.target;
+    if (!el.matches('input, select, textarea')) return;
+
+    // Small delay to let the on-screen keyboard appear first
+    setTimeout(() => {
+      // Scroll the field's parent group into view within the form wrapper
+      const group = el.closest('.field-group') || el.closest('.form-grid') || el;
+      group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 350);
+  });
+
+  // Use visualViewport API to detect on-screen keyboard
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const activeEl = document.activeElement;
+      if (activeEl && activeEl.matches('input, select, textarea')) {
+        setTimeout(() => {
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+    });
+  }
+
+  // Make choice cards, toggle options, and buttons scroll into view when tapped
+  // This helps on step 3 where items below the fold are not visible
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('.choice-card, .toggle-option');
+    if (card) {
+      setTimeout(() => {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+  });
+
+  // ============================================================
+  // SCROLL HINT — show bouncing arrow when content overflows
+  // ============================================================
+  const scrollHint = document.getElementById('scrollHint');
+
+  function checkScrollOverflow() {
+    const fw = document.getElementById('formWrapper');
+    if (!fw) return;
+    const canScroll = fw.scrollHeight > fw.clientHeight + 20;
+    const isNearBottom = fw.scrollTop + fw.clientHeight >= fw.scrollHeight - 40;
+    if (canScroll && !isNearBottom) {
+      scrollHint.classList.remove('hidden');
+    } else {
+      scrollHint.classList.add('hidden');
+    }
+  }
+
+  formWrapper.addEventListener('scroll', checkScrollOverflow);
+
+  // Re-check on step change (using a MutationObserver on form-step visibility)
+  const observer = new MutationObserver(() => {
+    setTimeout(checkScrollOverflow, 100);
+  });
+  document.querySelectorAll('.form-step').forEach(step => {
+    observer.observe(step, { attributes: true, attributeFilter: ['class'] });
+  });
+
+  // Also check on window resize (keyboard appear/disappear)
+  window.addEventListener('resize', () => setTimeout(checkScrollOverflow, 200));
 });
 
 // ============================================================

@@ -545,6 +545,114 @@
     .choice-card { padding: 14px 16px; font-size: 15px; }
     .btn { padding: 16px; font-size: 17px; }
   }
+
+  /* ===== INACTIVITY POPUP ===== */
+  #inactivity-overlay {
+    position: fixed; inset: 0;
+    z-index: 300;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #inactivity-overlay.visible { display: flex; }
+
+  .inactivity-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: fadeInBackdrop 0.3s ease;
+  }
+  @keyframes fadeInBackdrop {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .inactivity-popup {
+    position: relative;
+    background: white;
+    border-radius: 28px;
+    padding: 48px 56px;
+    max-width: 520px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+    animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .inactivity-icon {
+    width: 80px; height: 80px;
+    margin: 0 auto 24px;
+  }
+  .inactivity-icon svg { width: 100%; height: 100%; }
+
+  .inactivity-popup h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .inactivity-popup p {
+    font-size: 18px;
+    color: var(--text-light);
+    margin-bottom: 28px;
+  }
+
+  .inactivity-timer {
+    width: 100%;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  .inactivity-timer-bar {
+    height: 100%;
+    background: var(--orange);
+    border-radius: 4px;
+    width: 100%;
+    transition: width linear;
+  }
+
+  .inactivity-buttons {
+    display: flex;
+    gap: 14px;
+  }
+  .btn-continue {
+    flex: 1;
+    padding: 20px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--orange);
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-continue:hover { background: var(--orange-dark); }
+  .btn-continue:active { transform: scale(0.98); }
+
+  .btn-quit {
+    padding: 20px 28px;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius);
+    background: white;
+    color: var(--text-light);
+    font-size: 18px;
+    font-weight: 600;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-quit:hover { border-color: var(--gray-300); background: var(--gray-100); }
 </style>
 </head>
 <body>
@@ -686,6 +794,32 @@
   </div>
 </div>
 
+<!-- ===== INACTIVITY POPUP ===== -->
+<div id="inactivity-overlay">
+  <div class="inactivity-backdrop"></div>
+  <div class="inactivity-popup">
+    <div class="inactivity-icon">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="28" stroke="#f58220" stroke-width="3" fill="rgba(245,130,32,0.08)"/>
+        <path d="M32 18v18l12 7" stroke="#f58220" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h2 id="inactivityTitle">Ben je er nog?</h2>
+    <p id="inactivitySub">Je sessie verloopt binnenkort</p>
+    <div class="inactivity-timer">
+      <div class="inactivity-timer-bar" id="inactivityBar"></div>
+    </div>
+    <div class="inactivity-buttons">
+      <button class="btn-continue" id="btnContinue" onclick="dismissInactivity()">
+        <span id="inactivityBtnText">Ja, ik ben er nog</span>
+      </button>
+      <button class="btn-quit" id="btnQuit" onclick="confirmQuit()">
+        <span id="inactivityQuitText">Stoppen</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // TRANSLATIONS
@@ -726,6 +860,10 @@ const T = {
     privacy: 'Door je te registreren ga je akkoord met de verwerking van je gegevens door ENJOB Personeelsdiensten. We nemen zo snel mogelijk contact met je op.',
     success_title: 'Bedankt!',
     success_sub: 'We nemen zo snel mogelijk contact met je op.',
+    inactivity_title: 'Ben je er nog?',
+    inactivity_sub: 'Je sessie verloopt binnenkort',
+    inactivity_continue: 'Ja, ik ben er nog',
+    inactivity_quit: 'Stoppen',
     sectors: ['Logistiek', 'Productie', 'Techniek', 'Food', 'Administratie', 'Schoonmaak'],
     avail: ['Direct', 'Binnen 1 maand', '> 2 maanden']
   },
@@ -764,6 +902,10 @@ const T = {
     privacy: 'By registering you agree to the processing of your data by ENJOB Personeelsdiensten. We will contact you as soon as possible.',
     success_title: 'Thank you!',
     success_sub: 'We will contact you as soon as possible.',
+    inactivity_title: 'Are you still there?',
+    inactivity_sub: 'Your session will expire soon',
+    inactivity_continue: 'Yes, I\'m here',
+    inactivity_quit: 'Quit',
     sectors: ['Logistics', 'Production', 'Engineering', 'Food', 'Administration', 'Cleaning'],
     avail: ['Immediately', 'Within 1 month', '> 2 months']
   },
@@ -802,6 +944,10 @@ const T = {
     privacy: 'С регистрацията си се съгласявате с обработката на вашите данни от ENJOB Personeelsdiensten. Ще се свържем с вас възможно най-скоро.',
     success_title: 'Благодарим!',
     success_sub: 'Ще се свържем с вас възможно най-скоро.',
+    inactivity_title: 'Все още ли сте тук?',
+    inactivity_sub: 'Вашата сесия ще изтече скоро',
+    inactivity_continue: 'Да, тук съм',
+    inactivity_quit: 'Спри',
     sectors: ['Логистика', 'Производство', 'Техника', 'Храни', 'Администрация', 'Почистване'],
     avail: ['Веднага', 'До 1 месец', '> 2 месеца']
   },
@@ -840,6 +986,10 @@ const T = {
     privacy: 'Rejestrując się, wyrażasz zgodę na przetwarzanie swoich danych przez ENJOB Personeelsdiensten. Skontaktujemy się z Tobą jak najszybciej.',
     success_title: 'Dziękujemy!',
     success_sub: 'Skontaktujemy się z Tobą jak najszybciej.',
+    inactivity_title: 'Czy nadal tu jesteś?',
+    inactivity_sub: 'Twoja sesja wkrótce wygaśnie',
+    inactivity_continue: 'Tak, jestem',
+    inactivity_quit: 'Zakończ',
     sectors: ['Logistyka', 'Produkcja', 'Technika', 'Żywność', 'Administracja', 'Sprzątanie'],
     avail: ['Od zaraz', 'W ciągu 1 miesiąca', '> 2 miesiące']
   },
@@ -878,6 +1028,10 @@ const T = {
     privacy: 'Prin înregistrare, ești de acord cu prelucrarea datelor tale de către ENJOB Personeelsdiensten. Te vom contacta cât mai curând posibil.',
     success_title: 'Mulțumim!',
     success_sub: 'Te vom contacta cât mai curând posibil.',
+    inactivity_title: 'Mai ești aici?',
+    inactivity_sub: 'Sesiunea ta va expira în curând',
+    inactivity_continue: 'Da, sunt aici',
+    inactivity_quit: 'Oprește',
     sectors: ['Logistică', 'Producție', 'Tehnică', 'Alimentar', 'Administrație', 'Curățenie'],
     avail: ['Imediat', 'În 1 lună', '> 2 luni']
   }
@@ -1308,16 +1462,85 @@ function rotateAttractText() {
   }, 600);
 }
 
-// Inactivity timeout — reset after 60 seconds of no interaction on form
-let inactivityTimer;
+// ============================================================
+// INACTIVITY POPUP SYSTEM
+// ============================================================
+const INACTIVITY_DELAY = 30000;   // 30s before showing popup
+const POPUP_COUNTDOWN = 15;       // 15s countdown in popup
+
+let inactivityTimer = null;
+let popupCountdown = null;
+let popupSecondsLeft = POPUP_COUNTDOWN;
+let inactivityPopupVisible = false;
+
 function resetInactivity() {
+  // Don't reset if popup is showing — only the buttons should dismiss it
+  if (inactivityPopupVisible) return;
   clearTimeout(inactivityTimer);
   inactivityTimer = setTimeout(() => {
+    // Only trigger on the form screen
     if (!document.getElementById('video-screen').classList.contains('hidden')) return;
     if (document.getElementById('success-screen').style.display === 'flex') return;
-    goToVideo();
-  }, 60000);
+    showInactivityPopup();
+  }, INACTIVITY_DELAY);
 }
+
+function showInactivityPopup() {
+  inactivityPopupVisible = true;
+  const t = T[currentLang];
+
+  // Set translated text
+  document.getElementById('inactivityTitle').textContent = t.inactivity_title;
+  document.getElementById('inactivitySub').textContent = t.inactivity_sub;
+  document.getElementById('inactivityBtnText').textContent = t.inactivity_continue;
+  document.getElementById('inactivityQuitText').textContent = t.inactivity_quit;
+
+  // Reset and start the progress bar
+  const bar = document.getElementById('inactivityBar');
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+
+  const overlay = document.getElementById('inactivity-overlay');
+  overlay.classList.add('visible');
+
+  // Start shrinking the bar over POPUP_COUNTDOWN seconds
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      bar.style.transition = `width ${POPUP_COUNTDOWN}s linear`;
+      bar.style.width = '0%';
+    });
+  });
+
+  // Start countdown
+  popupSecondsLeft = POPUP_COUNTDOWN;
+  popupCountdown = setInterval(() => {
+    popupSecondsLeft--;
+    if (popupSecondsLeft <= 0) {
+      clearInterval(popupCountdown);
+      hideInactivityPopup();
+      goToVideo();
+    }
+  }, 1000);
+}
+
+function dismissInactivity() {
+  hideInactivityPopup();
+  resetInactivity();
+}
+
+function confirmQuit() {
+  hideInactivityPopup();
+  goToVideo();
+}
+
+function hideInactivityPopup() {
+  inactivityPopupVisible = false;
+  clearInterval(popupCountdown);
+  clearTimeout(inactivityTimer);
+  const overlay = document.getElementById('inactivity-overlay');
+  overlay.classList.remove('visible');
+}
+
 document.addEventListener('touchstart', resetInactivity);
 document.addEventListener('click', resetInactivity);
 document.addEventListener('input', resetInactivity);
